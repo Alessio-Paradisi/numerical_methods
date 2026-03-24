@@ -103,6 +103,14 @@ results.sort(key=lambda row: (row[4], row[0]))
 #======================================
 
 
+#reduced chi_squared function for the linear interpolations of data points
+def chi_sqaured_reduced(x,y, yerr, coeffs):
+    y_fit = np.polyval(coeffs, x)
+    chi_squared = np.sum( ((y-y_fit) / yerr)**2 )
+    dof = len(x) - len(coeffs)
+    return chi_squared/dof
+
+
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
 # Group results by ratio
@@ -118,40 +126,44 @@ colors = {4: 'blue', 6: 'red', 8:'green'}
 
 # --- Left Plot: Energy Density ---
 for ratio, data in by_ratio.items():
-	x = [r[4]**(-2) for r in data]
-	y = [r[0] for r in data]
-	err = [r[1] for r in data]
-	ax1.errorbar(x, y, yerr=err, fmt=markers[ratio], mfc='none', mec=colors[ratio], capsize=3, markersize=6, label=f'$N_S/N_T={ratio}$')
-	coeffs = np.polyfit(x, y, 1)
-	x_fit = np.linspace(0, max(x), 100)
-	ax1.plot(x_fit, np.polyval(coeffs, x_fit), linestyle='dotted', color=colors[ratio], alpha=0.6)
+    x =np.array([r[4]**(-2) for r in data])
+    y = np.array([r[0] for r in data])
+    err =np.array([r[1] for r in data])
+    coeffs = np.polyfit(x, y, 1, w=1/err)
+    #evaluating the chi squared
+    chi_sq_red = chi_sqaured_reduced(x, y, err, coeffs)
+    
+    ax1.errorbar(x, y, yerr=err, fmt=markers[ratio], mfc='none', mec=colors[ratio], capsize=3, markersize=6, label=f'$N_S/N_T={ratio} \\  (\\chi^2_\\nu={chi_sq_red:.3f})$')
+    x_fit = np.linspace(0, max(x), 100)
+    ax1.plot(x_fit, np.polyval(coeffs, x_fit), linestyle='dotted', color=colors[ratio], alpha=0.6)
 
 ax1.set_xlabel('$1/N_T^2$', fontsize=12)
 ax1.set_ylabel('$\\epsilon/T^2$', fontsize=12)
-ax1.set_title('Energy Density vs $1/N_T^2$', fontsize=13)
 ax1.legend(loc='best')
 ax1.axhline(y=0.406123498885, color='black', linestyle='dashed')
 
 
 # --- Right Plot: Trace Anomaly ---
 for ratio, data in by_ratio.items():
-	x = [r[4]**(-2) for r in data]
-	y = [r[2] for r in data]
-	err = [r[3] for r in data]
-	ax2.errorbar(x, y, yerr=err, fmt=markers[ratio], mfc='none', mec=colors[ratio], capsize=3, markersize=6, label=f'$N_S/N_T={ratio}$')
-	coeffs = np.polyfit(x, y, 1)
-	x_fit = np.linspace(0, max(x), 100)
-	ax2.plot(x_fit, np.polyval(coeffs, x_fit), linestyle='dotted', color=colors[ratio], alpha=0.6)
-
+    x = np.array([r[4]**(-2) for r in data])
+    y =np.array([r[2] for r in data])
+    err =np.array([r[3] for r in data])
+    coeffs = np.polyfit(x, y, 1, w=1/err)
+    #evaluating the chi squared
+    chi_sq_red = chi_sqaured_reduced(x, y, err, coeffs)
+    
+    ax2.errorbar(x, y, yerr=err, fmt=markers[ratio], mfc='none', mec=colors[ratio], capsize=3, markersize=6, label=f'$N_S/N_T={ratio} \\  ( \\chi^2_\\nu={chi_sq_red:.3f})$')
+    x_fit = np.linspace(0, max(x), 100)
+    ax2.plot(x_fit, np.polyval(coeffs, x_fit), linestyle='dotted', color=colors[ratio], alpha=0.6)
 ax2.set_xlabel('$1/N_T^2$', fontsize=12)
 ax2.set_ylabel('$(\\epsilon-P)/T^2$', fontsize=12)
-ax2.set_title('Trace Anomaly vs $1/N_T^2$', fontsize=13)
 ax2.legend(loc='best')
 ax2.set_ylim(0.18, 0.21)
 ax2.axhline(y=0.1866576057, color='black', linestyle='dashed')
 
 plt.tight_layout()
-plt.show()
+
+plt.savefig('results/size_effects.pdf')
 
 
 
