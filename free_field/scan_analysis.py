@@ -97,27 +97,33 @@ for (r1f, r1z), (r2f, r2z), (r3f, r3z) in zip(pairs_O1, pairs_O2, pairs_O3):
 results.sort(key=lambda row: (row[5], row[0]))
 
 
+
 #======================================
 #       Plotting the results
 #======================================
 
+
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+
 
 # Group results by N_T instead of ratio
 by_NT = {4: [], 6: [], 8: []}
+
 
 for r in results:
   nt_val = r[5]
   if nt_val in by_NT:
      by_NT[nt_val].append(r)
 
+
 # Visual styling
 markers = {4: 'o', 6: 's', 8: 'D'}
 colors = {4: 'blue', 6: 'red', 8: 'green'}
 
+
 # --- Left Plot: Energy Density vs T/m ---
+
 for nt_val, data in by_NT.items():
-  if not data: continue
   x = [r[0] for r in data]  # T_over_m
   y = [r[1] for r in data]  # energy_density
   err = [r[2] for r in data] # error
@@ -130,9 +136,8 @@ ax1.axhline(y=(np.pi/6), color='black', linestyle='dashed', label='$\\pi/6$ (Hig
 
 ax1.set_xlabel('$T/m$', fontsize=12)
 ax1.set_ylabel('$\\epsilon/T^2$', fontsize=12)
-ax1.set_title('Energy Density ($N_s / N_t = 5$)', fontsize=13)
+ax1.set_title('($N_s / N_t = 5$)', fontsize=13)
 ax1.legend(loc='best')
-
 
 
 # --- Right Plot: Trace Anomaly vs T/m ---
@@ -146,7 +151,6 @@ axins.set_xlim(x1,x2)
 axins.set_ylim(y1,y2)
 
 for nt_val, data in by_NT.items():
-  if not data: continue
   x = [r[0] for r in data]  # T_over_m
   y = [r[3] for r in data]  # trace_anomaly
   err = [r[4] for r in data] # error
@@ -155,14 +159,42 @@ for nt_val, data in by_NT.items():
 
   axins.errorbar(x, y, yerr= err, fmt=markers[nt_val], mfc='none', mec=colors[nt_val], color=colors[nt_val], linestyle='dotted', alpha=1, linewidth=1, capsize=3, markersize=6 )
 
-  
-
-  
 
 ax2.set_xlabel('$T/m$', fontsize=12)
 ax2.set_ylabel('$(\\epsilon-P)/T^2$', fontsize=12)
-ax2.set_title('Trace Anomaly ($N_s / N_t = 5$)', fontsize=13)
+ax2.set_title('($N_s / N_t = 5$)', fontsize=13)
 ax2.legend(loc='best')
 
 plt.tight_layout()
-plt.show()
+plt.savefig('../results/scan.pdf')
+
+
+
+#======================================
+#   Integrating the second plot to
+#       obtain the pressure
+#======================================
+
+
+for nt_val, data in by_NT.items():
+  #extracting values of (£-P)/T^2,errors and T/m corresponding 
+  x_values = np.array([r[0] for r in data])
+  y_values = np.array([r[3] for r in data])
+  y_errors = np.array([r[4]for r in data]) 
+  integrand = y_values/x_values
+  integrand_error = y_errors/x_values
+
+  #calculating the integral with trapezoidal integration
+  pressure = np.trapz(integrand, x_values)
+
+  #evaluating prefactors for integrand sum
+  weights = np.zeros_like(x_values)
+  weights[0] = (x_values[1] - x_values[0]) / 2.0
+  weights[-1] = (x_values[-1] - x_values[-2]) / 2.0
+  for i in range(1, len(x_values) - 1):
+    weights[i] = (x_values[i+1] - x_values[i-1]) / 2.0
+        
+  integral_error = np.sqrt(np.sum((weights * integrand_error)**2))
+  
+  print(f"N_T = {nt_val} | Pressure (P/T^2): {pressure:.6f} ± {integral_error:.6f}")
+  
