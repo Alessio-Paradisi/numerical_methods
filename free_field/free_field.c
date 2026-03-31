@@ -366,7 +366,7 @@ void compute_statistics(double* O1_operator_data, double* O2_operator_data, doub
 
 
 /*======================================
-								Main
+									MAIN
 ========================================*/
 
 
