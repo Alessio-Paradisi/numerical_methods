@@ -114,7 +114,7 @@ void lattice_sweep(pcg32_random_t* rng_pointer){
 
 //a fixed number of sweeps to throw away
 void termalization(pcg32_random_t *rng_pointer){
-	for(int i = 0; i < N_TERMAL; i++){
+	for(int i = 0; i < N_THERMAL; i++){
 		lattice_sweep(rng_pointer);
 	}
 }
@@ -245,7 +245,7 @@ int main(){
 	termalization(&rng);
 	
 	//fixed temporary file for Q² values (overwritten each run, deleted at end)
-	const char *measurements_Q2 = "data/measurements.bin";
+	const char *measurements_Q2 = "data1/measurements.bin";
 	FILE *f_measurements = fopen(measurements_Q2, "wb");
 
 	//mesuring <Q^2> by evolving the lattice
@@ -272,7 +272,7 @@ int main(){
 	
 	//file with  first column: "block_size" ; second column: "current_error"
 	char plateau_name[64];
-	sprintf(plateau_name, "data/plateau_%d.txt", N_t);
+	sprintf(plateau_name, "data1/plateau_%.4f.txt", (float)BETA);
 
 	//cycles until the plateau is found or the threshold value is too high, every time the threshold increases
 	while(!plateau_found && cv_threshold <= 0.02){
@@ -319,8 +319,8 @@ int main(){
 	current_error = error_winding_number2(measurements_Q2, optimal_block_size);
 	
 	//writing in file 1:"N_t"  2: "<Q^2>"  3:"<Q^2> error"  
-	FILE *f_results = fopen("data/results.txt", "a");
-	fprintf(f_results, "%d %.8f %.8f\n", N_t, mean_winding_number2(measurements_Q2), current_error);
+	FILE *f_results = fopen("data1/results.txt", "a");
+	fprintf(f_results, "%d %.5f  %.8f %.8f\n", N_t, BETA,  mean_winding_number2(measurements_Q2), current_error);
 
 	fclose(f_results);
 	remove(measurements_Q2);

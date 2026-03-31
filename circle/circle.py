@@ -23,7 +23,7 @@ open("data/results.txt", "w").close() #clears the file results if i want to run 
 
 DELTA = 0.5
 
-N_TERMAL = 50000   #number of sweeps  to do before data acquisition
+N_THERMAL = 50000   #number of sweeps  to do before data acquisition
 
 #N_t_list = [25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300]		#number of sites in the euclidean_time_lattice 
 N_t_list = [325]
@@ -43,7 +43,7 @@ for N_t in N_t_list:
   with open("parameters.h", "w") as f:
 	  f.write(f"#define MINIMAL_BLOCK_SIZE {MINIMAL_BLOCK_SIZE}\n")
 	  f.write(f"#define N_SAMPLES {N_SAMPLES}\n")
-	  f.write(f"#define N_TERMAL {N_TERMAL}\n")
+	  f.write(f"#define N_THERMAL {N_THERMAL}\n")
 	  f.write(f"#define N_t {N_t}\n")
 	  f.write(f"#define N_SWEEPS {N_SWEEPS}\n")
 	  f.write(f"#define DELTA {DELTA:.4f}\n")
